@@ -1,2 +1,2 @@
 # baseball
-作業用
+CPBL棒球勝率模擬系統
