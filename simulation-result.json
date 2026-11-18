@@ -1,0 +1,20 @@
+{
+  "teamA": {
+    "name": "味全龍",
+    "expectedRuns": 4.553,
+    "averageScore": 4.544,
+    "wins": 4695,
+    "winRate": 46.95
+  },
+  "teamB": {
+    "name": "富邦悍將",
+    "expectedRuns": 4.271,
+    "averageScore": 4.26,
+    "wins": 3957,
+    "winRate": 39.57
+  },
+  "draws": 1348,
+  "drawRate": 13.48,
+  "simulationCount": 10000,
+  "baseRuns": 4.5
+}

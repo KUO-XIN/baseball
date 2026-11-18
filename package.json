@@ -1,0 +1,20 @@
+{
+  "name": "cpbl-simulator",
+  "version": "1.0.0",
+  "description": "CPBL Baseball Simulation System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "CPBL",
+    "Baseball",
+    "Simulation"
+  ],
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

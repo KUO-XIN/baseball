@@ -1,0 +1,106 @@
+{
+  "league": {
+    "battingWoba": 0.3098354322222184,
+    "battingPA": 27003,
+    "pitchingWobaAgainst": 0.3100054399727769,
+    "pitchingPA": 27003
+  },
+  "teams": [
+    {
+      "teamId": "AAA011",
+      "teamName": "味全龍",
+      "batting": {
+        "woba": 0.30470722220218466,
+        "totalPA": 4457,
+        "playerCount": 25,
+        "excludedCount": 0
+      },
+      "pitching": {
+        "wobaAgainst": 0.2974612955347597,
+        "totalPA": 4424,
+        "playerCount": 27,
+        "excludedCount": 0
+      }
+    },
+    {
+      "teamId": "ACN011",
+      "teamName": "中信兄弟",
+      "batting": {
+        "woba": 0.3254818777697658,
+        "totalPA": 4656,
+        "playerCount": 31,
+        "excludedCount": 0
+      },
+      "pitching": {
+        "wobaAgainst": 0.3198493406899576,
+        "totalPA": 4533,
+        "playerCount": 30,
+        "excludedCount": 0
+      }
+    },
+    {
+      "teamId": "ADD011",
+      "teamName": "統一7-ELEVEn獅",
+      "batting": {
+        "woba": 0.3154246216481847,
+        "totalPA": 4498,
+        "playerCount": 30,
+        "excludedCount": 0
+      },
+      "pitching": {
+        "wobaAgainst": 0.2998386891699245,
+        "totalPA": 4457,
+        "playerCount": 34,
+        "excludedCount": 0
+      }
+    },
+    {
+      "teamId": "AEO011",
+      "teamName": "富邦悍將",
+      "batting": {
+        "woba": 0.3064869298345833,
+        "totalPA": 4489,
+        "playerCount": 34,
+        "excludedCount": 0
+      },
+      "pitching": {
+        "wobaAgainst": 0.3189702058160241,
+        "totalPA": 4575,
+        "playerCount": 28,
+        "excludedCount": 0
+      }
+    },
+    {
+      "teamId": "AJL011",
+      "teamName": "樂天桃猿",
+      "batting": {
+        "woba": 0.2924438842502774,
+        "totalPA": 4376,
+        "playerCount": 32,
+        "excludedCount": 0
+      },
+      "pitching": {
+        "wobaAgainst": 0.3075853000682288,
+        "totalPA": 4435,
+        "playerCount": 30,
+        "excludedCount": 0
+      }
+    },
+    {
+      "teamId": "AKP011",
+      "teamName": "台鋼雄鷹",
+      "batting": {
+        "woba": 0.3133704993075338,
+        "totalPA": 4527,
+        "playerCount": 31,
+        "excludedCount": 0
+      },
+      "pitching": {
+        "wobaAgainst": 0.31566292372795146,
+        "totalPA": 4579,
+        "playerCount": 32,
+        "excludedCount": 0
+      }
+    }
+  ]
+}
