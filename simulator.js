@@ -5,22 +5,26 @@ const path = require('path');
 const SIMULATION_COUNT = 10000;
 const BASE_RUNS = 4.5;
 
-const dataPath = path.join(__dirname, 'team-stats.json');
+function readJson(filename) {
+    const filePath = path.join(__dirname, filename);
 
-if (!fs.existsSync(dataPath)) {
-    throw new Error('找不到 team-stats.json');
+    if (!fs.existsSync(filePath)) {
+        throw new Error(`Missing file: ${filename}`);
+    }
+
+    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
-const data = JSON.parse(
-    fs.readFileSync(dataPath, 'utf8')
-);
+const teamData = readJson('team-stats.json');
+const batters = readJson('batters.json');
+const pitchers = readJson('pitchers.json');
 
-const teams = data.teams;
-const league = data.league;
+const teams = teamData.teams;
+const league = teamData.league;
 
 function poisson(lambda) {
     if (!Number.isFinite(lambda) || lambda < 0) {
-        throw new Error('無效的 Poisson 參數');
+        throw new Error('Invalid Poisson parameter');
     }
 
     if (lambda === 0) return 0;
@@ -37,48 +41,192 @@ function poisson(lambda) {
     return count - 1;
 }
 
-function calculateExpectedRuns(team, opponent) {
-    const battingWoba = team.batting.woba;
-    const pitchingWoba = opponent.pitching.wobaAgainst;
+function findTeam(teamId) {
+    return teams.find(team =>
+        String(team.teamId) === String(teamId)
+    );
+}
 
+function getPlayersForTeam(teamId) {
+    const team = findTeam(teamId);
+
+    if (!team) {
+        throw new Error('Team not found');
+    }
+
+    return {
+        batters: batters
+            .filter(player =>
+                String(player.teamId) === String(teamId)
+            )
+            .map(player => ({
+                playerId: String(player.playerId),
+                playerName: player.playerName,
+                pa: Number(player.stats.pa) || 0,
+                woba: Number(player.stats.woba)
+            })),
+
+        pitchers: pitchers
+            .filter(player =>
+                String(player.teamId) === String(teamId)
+            )
+            .map(player => ({
+                playerId: String(player.playerId),
+                playerName: player.playerName,
+                pa: Number(player.stats.pa) || 0,
+                woba: Number(player.stats.woba)
+            }))
+    };
+}
+
+function findPlayer(playerList, playerId) {
+    return playerList.find(player =>
+        String(player.playerId) === String(playerId)
+    );
+}
+
+function calculateLineupWoba(lineup) {
+    if (!Array.isArray(lineup) || lineup.length !== 9) {
+        throw new Error('A lineup must contain exactly 9 batters');
+    }
+
+    const uniqueIds = new Set(lineup.map(String));
+
+    if (uniqueIds.size !== 9) {
+        throw new Error('Duplicate batters are not allowed');
+    }
+
+    let totalPa = 0;
+    let weightedWoba = 0;
+
+    for (const playerId of lineup) {
+        const player = findPlayer(batters, playerId);
+
+        if (!player) {
+            throw new Error('Batter not found');
+        }
+
+        const pa = Number(player.stats.pa);
+        const woba = Number(player.stats.woba);
+
+        if (
+            !Number.isFinite(pa) ||
+            pa <= 0 ||
+            !Number.isFinite(woba)
+        ) {
+            throw new Error('Invalid batter statistics');
+        }
+
+        totalPa += pa;
+        weightedWoba += pa * woba;
+    }
+
+    if (totalPa <= 0) {
+        throw new Error('Invalid lineup PA');
+    }
+
+    return weightedWoba / totalPa;
+}
+
+function validatePitcher(teamId, pitcherId) {
+    const pitcher = findPlayer(pitchers, pitcherId);
+
+    if (!pitcher) {
+        throw new Error('Pitcher not found');
+    }
+
+    if (String(pitcher.teamId) !== String(teamId)) {
+        throw new Error('Pitcher does not belong to selected team');
+    }
+
+    const woba = Number(pitcher.stats.woba);
+
+    if (!Number.isFinite(woba) || woba < 0) {
+        throw new Error('Invalid pitcher statistics');
+    }
+
+    return woba;
+}
+
+function calculateExpectedRuns(
+    battingWoba,
+    opponentPitchingWoba
+) {
     if (
         !Number.isFinite(battingWoba) ||
-        !Number.isFinite(pitchingWoba) ||
+        !Number.isFinite(opponentPitchingWoba) ||
         !Number.isFinite(league.battingWoba) ||
         !Number.isFinite(league.pitchingWobaAgainst) ||
         league.battingWoba <= 0 ||
         league.pitchingWobaAgainst <= 0
     ) {
-        throw new Error('球隊統計資料無效');
+        throw new Error('Invalid statistics');
     }
 
     const battingFactor =
         battingWoba / league.battingWoba;
 
     const pitchingFactor =
-        pitchingWoba / league.pitchingWobaAgainst;
+        opponentPitchingWoba / league.pitchingWobaAgainst;
 
     return BASE_RUNS * battingFactor * pitchingFactor;
 }
 
-function findTeam(teamId) {
-    return teams.find(team => team.teamId === teamId);
-}
-
-function simulateMatch(teamA, teamB) {
+function simulateMatch(
+    teamA,
+    teamB,
+    lineupA,
+    lineupB,
+    pitcherAId,
+    pitcherBId
+) {
     if (!teamA || !teamB) {
-        throw new Error('找不到指定球隊');
+        throw new Error('Team not found');
     }
 
     if (teamA.teamId === teamB.teamId) {
-        throw new Error('不能選擇相同的球隊');
+        throw new Error('Same teams are not allowed');
     }
 
-    const expectedA =
-        calculateExpectedRuns(teamA, teamB);
+    // 確認所有打者都屬於指定球隊
+    for (const playerId of lineupA) {
+        const player = findPlayer(batters, playerId);
 
-    const expectedB =
-        calculateExpectedRuns(teamB, teamA);
+        if (!player || String(player.teamId) !== String(teamA.teamId)) {
+            throw new Error('Team A lineup contains an invalid batter');
+        }
+    }
+
+    for (const playerId of lineupB) {
+        const player = findPlayer(batters, playerId);
+
+        if (!player || String(player.teamId) !== String(teamB.teamId)) {
+            throw new Error('Team B lineup contains an invalid batter');
+        }
+    }
+
+    const lineupWobaA = calculateLineupWoba(lineupA);
+    const lineupWobaB = calculateLineupWoba(lineupB);
+
+    const pitcherWobaA = validatePitcher(
+        teamA.teamId,
+        pitcherAId
+    );
+
+    const pitcherWobaB = validatePitcher(
+        teamB.teamId,
+        pitcherBId
+    );
+
+    const expectedA = calculateExpectedRuns(
+        lineupWobaA,
+        pitcherWobaB
+    );
+
+    const expectedB = calculateExpectedRuns(
+        lineupWobaB,
+        pitcherWobaA
+    );
 
     let winsA = 0;
     let winsB = 0;
@@ -121,7 +269,9 @@ function simulateMatch(teamA, teamB) {
             wins: winsA,
             winRate: Number(
                 (winsA / SIMULATION_COUNT * 100).toFixed(2)
-            )
+            ),
+            lineupWoba: Number(lineupWobaA.toFixed(4)),
+            pitcherWoba: Number(pitcherWobaA.toFixed(4))
         },
 
         teamB: {
@@ -134,7 +284,9 @@ function simulateMatch(teamA, teamB) {
             wins: winsB,
             winRate: Number(
                 (winsB / SIMULATION_COUNT * 100).toFixed(2)
-            )
+            ),
+            lineupWoba: Number(lineupWobaB.toFixed(4)),
+            pitcherWoba: Number(pitcherWobaB.toFixed(4))
         },
 
         draws,
@@ -150,7 +302,10 @@ function simulateMatch(teamA, teamB) {
 
 module.exports = {
     teams,
+    batters,
+    pitchers,
     findTeam,
+    getPlayersForTeam,
     simulateMatch,
     SIMULATION_COUNT,
     BASE_RUNS
@@ -158,39 +313,5 @@ module.exports = {
 
 // 保留終端機執行方式
 if (require.main === module) {
-    const args = process.argv.slice(2);
-
-    if (args.length === 1 && args[0] === '--list') {
-        teams.forEach((team, index) => {
-            console.log(`${index + 1}. ${team.teamName}`);
-        });
-        process.exit(0);
-    }
-
-    if (args.length !== 2) {
-        console.log('使用方式：');
-        console.log('node simulator.js --list');
-        console.log('node simulator.js "味全龍" "中信兄弟"');
-        process.exit(0);
-    }
-
-    const teamA = teams.find(t => t.teamName === args[0]);
-    const teamB = teams.find(t => t.teamName === args[1]);
-
-    try {
-        const result = simulateMatch(teamA, teamB);
-
-        console.log(JSON.stringify(result, null, 2));
-
-        fs.writeFileSync(
-            path.join(__dirname, 'simulation-result.json'),
-            JSON.stringify(result, null, 2),
-            'utf8'
-        );
-
-        console.log('結果已儲存至 simulation-result.json');
-    } catch (error) {
-        console.error(error.message);
-        process.exit(1);
-    }
+    console.log('This simulator is now intended to be used through server.js.');
 }

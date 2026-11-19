@@ -5,6 +5,7 @@ const path = require('path');
 const {
     teams,
     findTeam,
+    getPlayersForTeam,
     simulateMatch
 } = require('./simulator');
 
@@ -13,15 +14,6 @@ const PORT = 3000;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
-
-// 測試中文編碼
-app.get('/test-encoding', (req, res) => {
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-
-    res.send(
-        '\u5473\u5168\u9F8D\u3001\u4E2D\u4FE1\u5144\u5F1F\u3001\u6A21\u64EC\u7D50\u679C\u3001\u9810\u671F\u5F97\u5206'
-    );
-});
 
 // 取得球隊列表
 app.get('/api/teams', (req, res) => {
@@ -34,15 +26,48 @@ app.get('/api/teams', (req, res) => {
     });
 });
 
+// 取得指定球隊的球員名單
+app.get('/api/teams/:teamId/players', (req, res) => {
+    try {
+        const players = getPlayersForTeam(req.params.teamId);
+
+        res.json({
+            success: true,
+            batters: players.batters,
+            pitchers: players.pitchers
+        });
+
+    } catch (error) {
+        res.status(404).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
 // 執行比賽模擬
 app.post('/api/simulate', (req, res) => {
     try {
-        const { teamAId, teamBId } = req.body;
+        const {
+            teamAId,
+            teamBId,
+            lineupA,
+            lineupB,
+            pitcherAId,
+            pitcherBId
+        } = req.body;
 
         if (!teamAId || !teamBId) {
             return res.status(400).json({
                 success: false,
                 message: '\u8ACB\u9078\u64C7\u5169\u652F\u7403\u968A'
+            });
+        }
+
+        if (teamAId === teamBId) {
+            return res.status(400).json({
+                success: false,
+                message: '\u4E0D\u80FD\u9078\u64C7\u76F8\u540C\u7684\u7403\u968A'
             });
         }
 
@@ -56,14 +81,28 @@ app.post('/api/simulate', (req, res) => {
             });
         }
 
-        if (teamAId === teamBId) {
+        if (
+            !Array.isArray(lineupA) ||
+            !Array.isArray(lineupB) ||
+            lineupA.length !== 9 ||
+            lineupB.length !== 9 ||
+            !pitcherAId ||
+            !pitcherBId
+        ) {
             return res.status(400).json({
                 success: false,
-                message: '\u4E0D\u80FD\u9078\u64C7\u76F8\u540C\u7684\u7403\u968A'
+                message: '\u8ACB\u5B8C\u6210\u5169\u968A\u7684\u5148\u767C\u9663\u5BB9\u9078\u64C7'
             });
         }
 
-        const result = simulateMatch(teamA, teamB);
+        const result = simulateMatch(
+            teamA,
+            teamB,
+            lineupA,
+            lineupB,
+            pitcherAId,
+            pitcherBId
+        );
 
         res.json({
             success: true,
@@ -73,7 +112,7 @@ app.post('/api/simulate', (req, res) => {
     } catch (error) {
         console.error(error);
 
-        res.status(500).json({
+        res.status(400).json({
             success: false,
             message: error.message
         });

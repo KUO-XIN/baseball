@@ -1,0 +1,175 @@
+﻿
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPBL 棒球模擬系統</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-inner">
+            <div class="brand">CPBL <span>SIMULATOR</span></div>
+            <div class="season">2026 球季資料</div>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <section class="intro">
+            <p class="eyebrow">BASEBALL SIMULATION SYSTEM</p>
+            <h1>棒球比賽模擬系統</h1>
+            <p>選擇兩支球隊及各自的球員陣容，透過統計數據與機率模型模擬比賽結果。</p>
+        </section>
+
+        <section class="panel">
+            <h2>選擇對戰組合</h2>
+
+            <div class="team-selectors">
+                <div class="team-field">
+                    <label for="teamA">隊伍 A</label>
+                    <select id="teamA">
+                        <option value="">載入球隊中...</option>
+                    </select>
+                </div>
+
+                <div class="vs">VS</div>
+
+                <div class="team-field">
+                    <label for="teamB">隊伍 B</label>
+                    <select id="teamB">
+                        <option value="">載入球隊中...</option>
+                    </select>
+                </div>
+            </div>
+
+            <p id="errorMessage" class="error"></p>
+        </section>
+
+        <section id="lineupSection" class="hidden">
+
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">TEAM LINEUP</p>
+                    <h2>球員陣容選擇</h2>
+                </div>
+            </div>
+
+            <div class="lineup-container">
+
+                <section class="panel lineup-panel">
+                    <h3 id="lineupTitleA">隊伍 A 陣容</h3>
+
+                    <h4>打者陣容</h4>
+                    <div id="lineupA" class="lineup-list"></div>
+
+                    <div class="pitcher-field">
+                        <label for="pitcherA">投手</label>
+                        <select id="pitcherA">
+                            <option value="">請選擇投手</option>
+                        </select>
+                    </div>
+                </section>
+
+                <section class="panel lineup-panel">
+                    <h3 id="lineupTitleB">隊伍 B 陣容</h3>
+
+                    <h4>打者陣容</h4>
+                    <div id="lineupB" class="lineup-list"></div>
+
+                    <div class="pitcher-field">
+                        <label for="pitcherB">投手</label>
+                        <select id="pitcherB">
+                            <option value="">請選擇投手</option>
+                        </select>
+                    </div>
+                </section>
+
+            </div>
+
+            <p id="lineupStatus" class="lineup-status"></p>
+
+            <button id="simulateBtn" disabled>
+                開始模擬
+            </button>
+
+        </section>
+
+        <section id="resultSection" class="result-section hidden">
+
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">SIMULATION RESULT</p>
+                    <h2>模擬結果</h2>
+                </div>
+                <span id="simulationCount" class="tag"></span>
+            </div>
+
+            <div class="scoreboard">
+                <div class="score-team">
+                    <p id="resultTeamA"></p>
+                    <strong id="scoreA">-</strong>
+                    <span>模擬平均得分</span>
+                </div>
+
+                <div class="score-divider">VS</div>
+
+                <div class="score-team">
+                    <p id="resultTeamB"></p>
+                    <strong id="scoreB">-</strong>
+                    <span>模擬平均得分</span>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3>預期得分</h3>
+                <div id="expectedRuns"></div>
+            </div>
+
+            <div class="panel">
+                <h3>勝率分析</h3>
+
+                <div class="rate-row">
+                    <span id="rateNameA"></span>
+                    <strong id="rateA"></strong>
+                </div>
+                <div class="bar">
+                    <div id="barA" class="bar-a"></div>
+                </div>
+
+                <div class="rate-row">
+                    <span id="rateNameB"></span>
+                    <strong id="rateB"></strong>
+                </div>
+                <div class="bar">
+                    <div id="barB" class="bar-b"></div>
+                </div>
+
+                <div class="draw-row">
+                    平手率
+                    <strong id="drawRate"></strong>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3>模擬設定</h3>
+                <p>模擬次數：10,000 次</p>
+                <p>得分模型：Poisson Distribution</p>
+                <p>模擬方法：Monte Carlo Simulation</p>
+                <p>基準得分：4.5 分（暫定模型參數）</p>
+            </div>
+
+        </section>
+
+        <footer>
+            <p>本系統為課程專題模擬工具，結果僅供研究與參考。</p>
+            <p>未考慮主客場、先發與後援投手差異及臨場因素。</p>
+        </footer>
+
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
